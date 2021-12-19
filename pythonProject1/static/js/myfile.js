@@ -1,0 +1,1 @@
+document.getElementById('demo').innerHTML = "THIS WAS CREATED WITH JAVASCRIPT";
