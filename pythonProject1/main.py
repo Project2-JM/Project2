@@ -33,8 +33,8 @@ login_manager.login_message_category = 'info'
 
 # TODO This is the email and password for admin
 
-EMAIL = "johnweweno@gmail.com"
-PASSWORD = "123National!"
+EMAIL = "jmtechowner@gmail.com"
+PASSWORD = "jmadmin!"
 
 
 @app.route("/")
