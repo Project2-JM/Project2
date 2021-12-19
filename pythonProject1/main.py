@@ -9,11 +9,9 @@ from wtforms.validators import DataRequired, Email, ValidationError, Length, Equ
 from wtforms_validators import AlphaSpace
 from flask_ckeditor import CKEditorField
 from sqlalchemy import desc
-from flask_bcrypt import Bcrypt
 from flask_login import UserMixin, login_user, LoginManager, logout_user,current_user,login_required
 from better_profanity import profanity
 import smtplib
-import random
 
 #Create a Flask Instance
 app = Flask(__name__)
