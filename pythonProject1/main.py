@@ -9,7 +9,7 @@ from wtforms.validators import DataRequired, Email, ValidationError, Length, Equ
 from wtforms_validators import AlphaSpace
 from flask_ckeditor import CKEditorField
 from sqlalchemy import desc
-from flask_bcrypt import Bcrypt
+#from flask_bcrypt import Bcrypt
 from flask_login import UserMixin, login_user, LoginManager, logout_user,current_user,login_required
 from better_profanity import profanity
 import smtplib
@@ -119,8 +119,8 @@ def student_login():
             login_user(user1, remember=form.remember.data)
 
             new_student = Student.query.filter_by(user_id=user1.id).first()
-            if new_student.approved == False:
-                return redirect(url_for("need_approve"))
+            # if new_student.approved == False:
+            #     return redirect(url_for("need_approve")) #mike approve
 
             return redirect(url_for('student_center'))
         else:
@@ -147,8 +147,8 @@ def instructor_login():
         if user1 and bcrypt.check_password_hash(user1.password, form.password.data) and user1.role == 'instructor':
             login_user(user1, remember=form.remember.data)
             new_instructor = Instructor.query.filter_by(user_id=user1.id).first()
-            if new_instructor.approved == False:
-                return redirect(url_for("need_approve"))
+            # if new_instructor.approved == False:
+            #     return redirect(url_for("need_approve")) #mike approve
 
             return redirect(url_for('instructor_index'))
         else:
@@ -219,9 +219,10 @@ def class_info(id):
                     course=stud_list[i],
                     is_graded=True,
                 )
-                if request.form.get(str(i)) == 0:
-                    instructor = Instructor.query.filter_by(f_name=clas.instructor_name.split(" ")[0]).first()
-                    instructor.warnings += 1
+                #mike warn
+                # if request.form.get(str(i)) == 0:
+                #     instructor = Instructor.query.filter_by(f_name=clas.instructor_name.split(" ")[0]).first()
+                #     instructor.warnings += 1
 
                 db.session.add(new_course)
                 db.session.commit()
@@ -295,19 +296,20 @@ def student_center():
         flash('Access Denied!', 'danger')
         return redirect(url_for('home'))
 
-    if request.method=="POST":
-        student = current_user.student
-        name = student.f_name + " " + student.l_name
-        class_count = student.class_count
-        new_graduate = Graduation(
-            student_name=name,
-            class_count=class_count,
-            student_id=student.id
-        )
-        student.is_applied = True
-        db.session.add(new_graduate)
-        db.session.commit()
-        return redirect(url_for('student_center'))
+# mike grad
+    # if request.method=="POST":
+    #     student = current_user.student
+    #     name = student.f_name + " " + student.l_name
+    #     class_count = student.class_count
+    #     new_graduate = Graduation(
+    #         student_name=name,
+    #         class_count=class_count,
+    #         student_id=student.id
+    #     )
+    #     student.is_applied = True
+    #     db.session.add(new_graduate)
+    #     db.session.commit()
+    #     return redirect(url_for('student_center'))
     class_grades = CompletedCourse.query.filter_by(stud_id=current_user.student.id)
     length = len(list(class_grades))
     grade = 0
@@ -362,32 +364,32 @@ def class_details(id):
         term_status = data.split("=")[1]
     return render_template("student/class_details.html", status=term_status, students=students, clas=clas)
 
-
-@app.route("/complaint", methods=["POST", "GET"])
-@login_required
-def complaint():
-    dir_ = ""
-    form = ComplaintForm()
-    if current_user.role == "student":
-        dir_ = "student_center"
-        user = Student.query.filter_by(id=current_user.student.id).first()
-    else:
-        dir_ = "instructor_index"
-        user = Instructor.query.filter_by(id=current_user.instructor.id).first()
-    complainer = user.f_name + " " + user.l_name
-    if form.validate_on_submit():
-        issue_filter = profanity.censor(form.issue.data)
-        new_complain = Complain(
-            complainer=complainer,
-            complainTo=form.complainFor.data,
-            issue=issue_filter,
-        )
-        db.session.add(new_complain)
-        db.session.commit()
-        return redirect(dir_)
-
-
-    return render_template("student/complaint.html", form=form)
+# mike complaint
+# @app.route("/complaint", methods=["POST", "GET"])
+# @login_required
+# def complaint():
+#     dir_ = ""
+#     form = ComplaintForm()
+#     if current_user.role == "student":
+#         dir_ = "student_center"
+#         user = Student.query.filter_by(id=current_user.student.id).first()
+#     else:
+#         dir_ = "instructor_index"
+#         user = Instructor.query.filter_by(id=current_user.instructor.id).first()
+#     complainer = user.f_name + " " + user.l_name
+#     if form.validate_on_submit():
+#         issue_filter = profanity.censor(form.issue.data)
+#         new_complain = Complain(
+#             complainer=complainer,
+#             complainTo=form.complainFor.data,
+#             issue=issue_filter,
+#         )
+#         db.session.add(new_complain)
+#         db.session.commit()
+#         return redirect(dir_)
+#
+#
+#     return render_template("student/complaint.html", form=form)
 
 
 @app.route("/registrar", methods=["GET", "POST"])
@@ -473,68 +475,68 @@ def class_edit(id):
 
     return render_template("admin/class_edit.html", form=form)
 
+# mike approve
+# @app.route("/need_approve")
+# def need_approve():
+#     logout_user()
+#     return render_template("need_approve.html")
 
-@app.route("/need_approve")
-def need_approve():
-    logout_user()
-    return render_template("need_approve.html")
+#mike reject
+# @app.route("/reject/<id>")
+# def reject(id):
+#       try:
+#           email = User.query.filter_by(id=id).first().email
+#           with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+#               connection.starttls()
+#               connection.login(user=EMAIL, password=PASSWORD)
+#               connection.sendmail(
+#                   from_addr=EMAIL,
+#                   to_addrs=email,
+#                   msg=f"Subject: We are sorry to say you have been rejected!\n\nmaybe you can try applying for it in next semester.....")
+#
+#               student = Student.query.filter_by(user_id=id).first()
+#               user =User.query.filter_by(id=id).first()
+#               db.session.delete(user)
+#               db.session.delete(student)
+#               db.session.commit()
+#
+#               return redirect(url_for('admin_home'))
+#       except Exception as e:
+#         print(e)
+#
+#
+#         return redirect(url_for('admin_home'))
 
-
-@app.route("/reject/<id>")
-def reject(id):
-      try:
-          email = User.query.filter_by(id=id).first().email
-          with smtplib.SMTP("smtp.gmail.com", 587) as connection:
-              connection.starttls()
-              connection.login(user=EMAIL, password=PASSWORD)
-              connection.sendmail(
-                  from_addr=EMAIL,
-                  to_addrs=email,
-                  msg=f"Subject: We are sorry to say you have been rejected!\n\nmaybe you can try applying for it in next semester.....")
-
-              student = Student.query.filter_by(user_id=id).first()
-              user =User.query.filter_by(id=id).first()
-              db.session.delete(user)
-              db.session.delete(student)
-              db.session.commit()
-
-              return redirect(url_for('admin_home'))
-      except Exception as e:
-        print(e)
-
-
-        return redirect(url_for('admin_home'))
-
-
-@app.route("/accept/<id>")
-def accept(id):
-      user = User.query.filter_by(id=id).first()
-
-      try:
-          email = User.query.filter_by(id=id).first().email
-          with smtplib.SMTP("smtp.gmail.com", 587) as connection:
-              connection.starttls()
-              connection.login(user=EMAIL, password=PASSWORD)
-              connection.sendmail(
-                  from_addr=EMAIL,
-                  to_addrs=email,
-                  msg=f"Subject: Congrats you have been accepted!\n\nyay you made it awesome :).....")
-              if (user.role == "student"):
-                  empl_id = int(random.random() * 1000000000)
-                  student = Student.query.filter_by(user_id=id).first()
-                  student.empl_id = empl_id
-                  student.approved = True
-              else:
-                 instructor = Instructor.query.filter_by(user_id=id).first()
-                 instructor.approved = True
-              db.session.commit()
-
-
-              return redirect(url_for('admin_home'))
-      except Exception as e:
-        print(e)
-
-        return redirect(url_for('admin_home'))
+# mike approve
+# @app.route("/accept/<id>")
+# def accept(id):
+#       user = User.query.filter_by(id=id).first()
+#
+#       try:
+#           email = User.query.filter_by(id=id).first().email
+#           with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+#               connection.starttls()
+#               connection.login(user=EMAIL, password=PASSWORD)
+#               connection.sendmail(
+#                   from_addr=EMAIL,
+#                   to_addrs=email,
+#                   msg=f"Subject: Congrats you have been accepted!\n\nyay you made it awesome :).....")
+#               if (user.role == "student"):
+#                   empl_id = int(random.random() * 1000000000)
+#                   student = Student.query.filter_by(user_id=id).first()
+#                   student.empl_id = empl_id
+#                   student.approved = True
+#               else:
+#                  instructor = Instructor.query.filter_by(user_id=id).first()
+#                  instructor.approved = True
+#               db.session.commit()
+#
+#
+#               return redirect(url_for('admin_home'))
+#       except Exception as e:
+#         print(e)
+#
+#         return redirect(url_for('admin_home'))
 
 
 @app.route("/create_class", methods=["POST", "GET"])
@@ -570,18 +572,18 @@ def create_class():
 
     return render_template("admin/create_class.html", form=form, status=term_status)
 
-
-@app.route("/view_complaint")
-@login_required
-def view_complaint():
-    if current_user.role != "admin":
-        flash('Access Denied!', 'danger')
-        return redirect(url_for('home'))
-    with open("term_status.txt", "r") as file:
-        data = file.read()
-        term_status = data.split("=")[1]
-    complains = Complain.query.all()
-    return render_template("admin/complain_view.html", complains=complains, status=term_status)
+# view complaint
+# @app.route("/view_complaint")
+# @login_required
+# def view_complaint():
+#     if current_user.role != "admin":
+#         flash('Access Denied!', 'danger')
+#         return redirect(url_for('home'))
+#     with open("term_status.txt", "r") as file:
+#         data = file.read()
+#         term_status = data.split("=")[1]
+#     complains = Complain.query.all()
+#     return render_template("admin/complain_view.html", complains=complains, status=term_status)
 
 
 @app.route("/running_period")
@@ -686,68 +688,68 @@ def delete_review(id):
     return redirect(url_for('view_review'))
 
 
-
-@app.route("/instructor_warning<id>", methods=["POST","GET"])
-def instructor_warning(id):
-    instructor = Instructor.query.filter_by(id=id).first()
-    instructor.warnings += 1
-    db.session.commit()
-    return redirect(url_for('view_review'))
+# mike warning
+# @app.route("/instructor_warning<id>", methods=["POST","GET"])
+# def instructor_warning(id):
+#     instructor = Instructor.query.filter_by(id=id).first()
+#     instructor.warnings += 1
+#     db.session.commit()
+#     return redirect(url_for('view_review'))
 
 
 @app.route("/end semester")
 def end_semester():
+    #mike warnings
 
+    # students = Student.query.all()
+    # for student in students:
+    #     student.classes.clear()
+    #     if student.c_gpa > 3.5:
+    #         student.honors = True
+    #         if student.warnings > 0:
+    #             student.warnings -= 1
+    #     else:
+    #         if student.c_gpa < 2:
+    #             student.warnings += 1
+    #
+    #         student.honors = False
+    #     if student.warnings > 3:
+    #
+    #         user = User.query.filter_by(id=student.user_id).first()
+    #         with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+    #             connection.starttls()
+    #             connection.login(user=EMAIL, password=PASSWORD)
+    #             connection.sendmail(
+    #                 from_addr=EMAIL,
+    #                 to_addrs=user.email,
+    #                 msg=f"Subject: We are sorry to say your account is terminated!\n\nYou received too many warnings.....")
+    #         db.session.delete(student)
+    #         db.session.delete(user)
+    #         db.session.commit()
 
-    students = Student.query.all()
-    for student in students:
-        student.classes.clear()
-        if student.c_gpa > 3.5:
-            student.honors = True
-            if student.warnings > 0:
-                student.warnings -= 1
-        else:
-            if student.c_gpa < 2:
-                student.warnings += 1
-
-            student.honors = False
-        if student.warnings > 3:
-
-            user = User.query.filter_by(id=student.user_id).first()
-            with smtplib.SMTP("smtp.gmail.com", 587) as connection:
-                connection.starttls()
-                connection.login(user=EMAIL, password=PASSWORD)
-                connection.sendmail(
-                    from_addr=EMAIL,
-                    to_addrs=user.email,
-                    msg=f"Subject: We are sorry to say your account is terminated!\n\nYou received too many warnings.....")
-            db.session.delete(student)
-            db.session.delete(user)
-            db.session.commit()
-
-    instructors = Instructor.query.all()
-    for instructor in instructors:
-        instructor.classes.clear()
-        if instructor.warnings > 3:
-            user = User.query.filter_by(id=instructor.user_id).first()
-            with smtplib.SMTP("smtp.gmail.com", 587) as connection:
-                connection.starttls()
-                connection.login(user=EMAIL, password=PASSWORD)
-                connection.sendmail(
-                    from_addr=EMAIL,
-                    to_addrs=user.email,
-                    msg=f"Subject: We are sorry to say your account is terminated!\n\nYou received too many warnings.....")
-            db.session.delete(instructor)
-            db.session.delete(user)
-            db.session.commit()
+    # instructors = Instructor.query.all()
+    # for instructor in instructors:
+    #     instructor.classes.clear()
+    #     if instructor.warnings > 3:
+    #         user = User.query.filter_by(id=instructor.user_id).first()
+    #         with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+    #             connection.starttls()
+    #             connection.login(user=EMAIL, password=PASSWORD)
+    #             connection.sendmail(
+    #                 from_addr=EMAIL,
+    #                 to_addrs=user.email,
+    #                 msg=f"Subject: We are sorry to say your account is terminated!\n\nYou received too many warnings.....")
+    #         db.session.delete(instructor)
+    #         db.session.delete(user)
+    #         db.session.commit()
     reviews = Review.query.all()
     classes = Classes.query.all()
-    complains = Complain.query.all()
+    # complains = Complain.query.all()
 
     for review in reviews:
         db.session.delete(review)
-    for complain in complains:
-        db.session.delete(complain)
+    # for complain in complains:
+    #     db.session.delete(complain)
     for clas in classes:
         db.session.delete(clas)
 
@@ -756,62 +758,62 @@ def end_semester():
 
     return redirect(url_for('admin_home'))
 
+# mike graduation
+# @app.route("/graduation")
+# @login_required
+# def graduation():
+#     if current_user.role != "admin":
+#         flash('Access Denied!', 'danger')
+#         return redirect(url_for('home'))
+#     with open("term_status.txt", "r") as file:
+#         data = file.read()
+#         term_status = data.split("=")[1]
+#
+#     if term_status != "End Semester":
+#         return redirect(url_for('admin_home'))
+#     graduates = Graduation.query.all()
+#
+#     return render_template("admin/graduation.html", graduates=graduates, status=term_status)
 
-@app.route("/graduation")
-@login_required
-def graduation():
-    if current_user.role != "admin":
-        flash('Access Denied!', 'danger')
-        return redirect(url_for('home'))
-    with open("term_status.txt", "r") as file:
-        data = file.read()
-        term_status = data.split("=")[1]
+# mike graduation
+# @app.route("/accept_graduate<id>")
+# @login_required
+# def accept_graduate(id):
+#     if current_user.role != "admin":
+#         flash('Access Denied!', 'danger')
+#         return redirect(url_for('home'))
+#
+#     student = Student.query.filter_by(id=id).first()
+#     try:
+#         email = User.query.filter_by(id=student.user_id).first().email
+#         with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+#             connection.starttls()
+#             connection.login(user=EMAIL, password=PASSWORD)
+#             connection.sendmail(
+#                 from_addr=EMAIL,
+#                 to_addrs=email,
+#                 msg=f"Subject: Congrats you graduated!\n\nyay you made it awesome :).....")
+#     except Exception as e:
+#         print(e)
+#     graduate = Graduation.query.filter_by(student_id=id).first()
+#     db.session.delete(graduate)
+#     db.session.delete(student)
+#     db.session.commit()
+#
+#
+#     return redirect(url_for('graduation'))
 
-    if term_status != "End Semester":
-        return redirect(url_for('admin_home'))
-    graduates = Graduation.query.all()
-
-    return render_template("admin/graduation.html", graduates=graduates, status=term_status)
-
-
-@app.route("/accept_graduate<id>")
-@login_required
-def accept_graduate(id):
-    if current_user.role != "admin":
-        flash('Access Denied!', 'danger')
-        return redirect(url_for('home'))
-
-    student = Student.query.filter_by(id=id).first()
-    try:
-        email = User.query.filter_by(id=student.user_id).first().email
-        with smtplib.SMTP("smtp.gmail.com", 587) as connection:
-            connection.starttls()
-            connection.login(user=EMAIL, password=PASSWORD)
-            connection.sendmail(
-                from_addr=EMAIL,
-                to_addrs=email,
-                msg=f"Subject: Congrats you graduated!\n\nyay you made it awesome :).....")
-    except Exception as e:
-        print(e)
-    graduate = Graduation.query.filter_by(student_id=id).first()
-    db.session.delete(graduate)
-    db.session.delete(student)
-    db.session.commit()
-
-
-    return redirect(url_for('graduation'))
-
-
-@app.route("/student warning<id>")
-def student_warning(id):
-    student = Student.query.filter_by(id=id).first()
-    student.warnings += 1
-    student.is_applied = False
-    graduate = Graduation.query.filter_by(student_id=id).first()
-    db.session.delete(graduate)
-    db.session.commit()
-
-    return redirect('graduation')
+##  mike warning
+# @app.route("/student warning<id>")
+# def student_warning(id):
+#     student = Student.query.filter_by(id=id).first()
+#     student.warnings += 1
+#     student.is_applied = False
+#     graduate = Graduation.query.filter_by(student_id=id).first()
+#     db.session.delete(graduate)
+#     db.session.commit()
+#
+#     return redirect('graduation')
 
 
 @app.route("/close_tutorial")
@@ -826,27 +828,27 @@ def close_tutorial():
         db.session.commit()
         return redirect(url_for('instructor_index'))
 
+## mike warning
+# @app.route("/warning accept<id>/", methods=["POST", "GET"])
+# def warning_accept(id):
+#     complain = Complain.query.filter_by(id=id).first()
+#     student = Student.query.filter_by(f_name=complain.complainTo.split(" ")[0]).first()
+#     if student:
+#         student.warnings += 1
+#         db.session.delete(complain)
+#         db.session.commit()
+#     else:
+#         db.session.delete(complain)
+#         db.session.commit()
+#     return redirect(url_for("view_complaint"))
 
-@app.route("/warning accept<id>/", methods=["POST", "GET"])
-def warning_accept(id):
-    complain = Complain.query.filter_by(id=id).first()
-    student = Student.query.filter_by(f_name=complain.complainTo.split(" ")[0]).first()
-    if student:
-        student.warnings += 1
-        db.session.delete(complain)
-        db.session.commit()
-    else:
-        db.session.delete(complain)
-        db.session.commit()
-    return redirect(url_for("view_complaint"))
-
-
-@app.route("/deny warning<id>", methods=["POST", "GET"])
-def deny_warning(id):
-    complain = Complain.query.filter_by(id=id).first()
-    db.session.delete(complain)
-    db.session.commit()
-    return redirect((url_for("view_complaint")))
+# mike warning
+# @app.route("/deny warning<id>", methods=["POST", "GET"])
+# def deny_warning(id):
+#     complain = Complain.query.filter_by(id=id).first()
+#     db.session.delete(complain)
+#     db.session.commit()
+#     return redirect((url_for("view_complaint")))
  ########################MODELS ARE BELOW#######################################
 
 # User Loader
@@ -883,13 +885,13 @@ class Student(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     f_name = db.Column(db.String(100), nullable=False)
     l_name = db.Column(db.String(100), nullable=False)
-    approved = db.Column(db.Boolean, default=False)
+    #approved = db.Column(db.Boolean, default=False)
     tutorial = db.Column(db.Boolean, default=False)
-    warnings = db.Column(db.Integer, default=0)
+    #warnings = db.Column(db.Integer, default=0)
     gpa = db.Column(db.Float, nullable=False)
     c_gpa = db.Column(db.Float, default=4)
     honors = db.Column(db.Boolean)
-    is_applied=db.Column(db.Boolean, default=False)
+    #is_applied=db.Column(db.Boolean, default=False)
     class_count = db.Column(db.Integer, default=0)
     empl_id = db.Column(db.String(9), unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -902,9 +904,9 @@ class Instructor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     f_name = db.Column(db.String(60), nullable=False)
     l_name = db.Column(db.String(60), nullable=False)
-    approved = db.Column(db.Boolean, default=False)
+    #approved = db.Column(db.Boolean, default=False)
     tutorial = db.Column(db.Boolean, default=False)
-    warnings = db.Column(db.Integer, default=0)
+    #warnings = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     classes = db.relationship("Classes", secondary=assign_class, backref=db.backref('instructors', lazy='dynamic'))
     rating = db.Column(db.Float, default=5)
@@ -930,12 +932,12 @@ class Classes(db.Model):
     # student_count = db.Column(db.Integer, default=0)
     time = db.Column(db.String(200), nullable=False)
 
-
-class Complain(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    complainer = db.Column(db.String(100), nullable=False)
-    complainTo = db.Column(db.String(100), nullable=False)
-    issue = db.Column(db.String(200), nullable=False)
+#miek complain
+# class Complain(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     complainer = db.Column(db.String(100), nullable=False)
+#     complainTo = db.Column(db.String(100), nullable=False)
+#     issue = db.Column(db.String(200), nullable=False)
 
 
 class Review(db.Model):
@@ -957,12 +959,13 @@ class CompletedCourse(db.Model):
     stud_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=False)
     is_graded = db.Column(db.Boolean, default=False)
 
-class Graduation(db.Model):
-    __tablename__="graduation"
-    id = db.Column(db.Integer, primary_key=True)
-    student_name=db.Column(db.String(200), nullable=False)
-    class_count=db.Column(db.Integer, nullable=False)
-    student_id=db.Column(db.Integer, nullable=False)
+#
+# class Graduation(db.Model):
+#     __tablename__="graduation"
+#     id = db.Column(db.Integer, primary_key=True)
+#     student_name=db.Column(db.String(200), nullable=False)
+#     class_count=db.Column(db.Integer, nullable=False)
+#     student_id=db.Column(db.Integer, nullable=False)
 
 
 class StudentRegister(FlaskForm):
@@ -1004,12 +1007,12 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Remember Me')
     submit = SubmitField("Log In")
 
-
-class ComplaintForm(FlaskForm):
-
-    complainFor = StringField("Complain For", validators=[DataRequired()])
-    issue = CKEditorField("Tell us what is the issue", validators=[DataRequired()])
-    submit = SubmitField("Sumbit")
+# mike complaint
+# class ComplaintForm(FlaskForm):
+#
+#     complainFor = StringField("Complain For", validators=[DataRequired()])
+#     issue = CKEditorField("Tell us what is the issue", validators=[DataRequired()])
+#     submit = SubmitField("Sumbit")
 
 
 class CreateClassForm(FlaskForm):
