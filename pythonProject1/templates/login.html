@@ -9,30 +9,41 @@
 	</div>
 {% endfor %}
 
-	<h1>Login!</h1>
+{% if email %}
+	<h1>Email: {{ email }}</h1>
+	<h1>Password: {{ password }}</h1>
 	<br/><br/>
+	<h2> I found this info: </h2>
+	Name: {{pw_to_check.name}}
+	Email: {{pw_to_check.email}}
+	PW: {{pw_to_check.password_hash}}
 
+{% else %}
+	<div class="shadow p-3 mb-5 bg-body rounded">
+		<h1> What's Your Email and Password?</h1>
 
-
-<div class="shadow p-3 mb-5 bg-body rounded">
-	<form method="POST">
-		{{ form.hidden_tag() }}
-
-		{{ form.name.label(class="form-label") }}
-
-		{{ form.name(class="form-control") }}
 		<br/>
 
-		{{ form.email.label(class="form-label") }}
+		<form method="POST">
+			{{ form.hidden_tag() }}
 
-		{{ form.email(class="form-control") }}
-		<br/>
+			{{ form.email.label(class="form-label") }}
 
-		{{ form.submit(class="btn btn-secondary") }}
-		<br/>
+			{{ form.email(class="form-control") }}
+			<br/>
 
-	</form>
-</div>
+			{{ form.password_hash.label(class="form-label") }}
+
+			{{ form.password_hash(class="form-control") }}
+			<br/>
+
+			{{ form.submit(class="btn btn-secondary") }}
+			<br/>
+
+		</form>
+	</div>
+
+{% endif %}
 
 <br/><br/><br/>
 
